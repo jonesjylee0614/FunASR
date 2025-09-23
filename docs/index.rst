@@ -14,6 +14,13 @@ Overview
 .. image:: ./images/funasr_overview.png
 
 .. toctree::
+   :maxdepth: 2
+   :caption: Technical Manual
+
+   ./technical_manual.md
+   ./architecture_overview.md
+
+.. toctree::
    :maxdepth: 1
    :caption: Installation
 
@@ -73,6 +80,7 @@ Overview
 
    ./runtime/readme.md
    ./runtime/docs/SDK_tutorial_online.md
+   ./runtime/docs/funasr_runtime_deploy_online_cpu_zh.md
    ./runtime/docs/SDK_tutorial.md
    ./runtime/html5/readme.md
 
