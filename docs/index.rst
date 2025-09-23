@@ -80,6 +80,7 @@ Overview
 
    ./runtime/readme.md
    ./runtime/docs/SDK_tutorial_online.md
+   ./runtime/docs/funasr_runtime_deploy_online_cpu_zh.md
    ./runtime/docs/SDK_tutorial.md
    ./runtime/html5/readme.md
 
