@@ -14,6 +14,13 @@ Overview
 .. image:: ./images/funasr_overview.png
 
 .. toctree::
+   :maxdepth: 2
+   :caption: Technical Manual
+
+   ./technical_manual.md
+   ./architecture_overview.md
+
+.. toctree::
    :maxdepth: 1
    :caption: Installation
 
