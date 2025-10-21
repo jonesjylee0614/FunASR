@@ -1,0 +1,922 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "api接口文档",
+    "termsOfService": "",
+    "version": "1.0"
+  },
+  "servers": [
+    {
+      "url": "",
+      "description": ""
+    }
+  ],
+  "tags": [
+    {
+      "x-order": 2,
+      "name": "离线会议"
+    },
+    {
+      "x-order": 1,
+      "name": "声纹管理"
+    }
+  ],
+  "paths": {
+    "/meeting/offline/save": {
+      "post": {
+        "contentType": "application/x-www-form-urlencoded",
+        "tags": [
+          "离线会议"
+        ],
+        "summary": "创建离线会议",
+        "description": "通过上传离线会议音频，自动识别发言人，拆分发言文字",
+        "operationId": "MeetingOfflineSaveUsingPOST",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "name",
+            "in": "query",
+            "description": "会议名",
+            "required": true,
+            "style": "form",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "meetingTime",
+            "in": "query",
+            "description": "会议时间 格式 yyyy-MM-dd HH:mm:ss",
+            "required": true,
+            "style": "form",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "audio",
+            "in": "query",
+            "description": "音频文件",
+            "required": true,
+            "style": "form",
+            "schema": {
+              "type": "file"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Base"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/voice/print/del": {
+      "delete": {
+        "contentType": "",
+        "tags": [
+          "声纹管理"
+        ],
+        "summary": "删除用户声纹",
+        "description": "",
+        "operationId": "VoicePrintDelUsingDELETE",
+        "produces": [
+          "application/json"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/domain.dto.VoiceUserPrintDelReq"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Base"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/voice/print/getUserList": {
+      "get": {
+        "contentType": "application/x-www-form-urlencoded",
+        "tags": [
+          "声纹管理"
+        ],
+        "summary": "获取用户列表",
+        "description": "该列表的用户需要有[声纹注册用户]角色权限",
+        "operationId": "VoicePrintGetuserlistUsingGET",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "description": "page 默认(1)",
+            "required": false,
+            "style": "form",
+            "schema": {
+              "type": "json.JsonInt64"
+            },
+            "example": 1
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "description": "pageSize 默认(10)",
+            "required": false,
+            "style": "form",
+            "schema": {
+              "type": "json.JsonInt64"
+            },
+            "example": 10
+          },
+          {
+            "name": "name",
+            "in": "query",
+            "description": "用户名",
+            "required": false,
+            "style": "form",
+            "schema": {
+              "type": "string"
+            },
+            "example": ""
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Base«model.base.PageResult[core.BusinessAccount]»"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/voice/print/getUserPrints": {
+      "get": {
+        "contentType": "application/x-www-form-urlencoded",
+        "tags": [
+          "声纹管理"
+        ],
+        "summary": "获取用户声纹列表",
+        "description": "",
+        "operationId": "VoicePrintGetuserprintsUsingGET",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "description": "page 默认(1)",
+            "required": false,
+            "style": "form",
+            "schema": {
+              "type": "json.JsonInt64"
+            },
+            "example": 1
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "description": "pageSize 默认(10)",
+            "required": false,
+            "style": "form",
+            "schema": {
+              "type": "json.JsonInt64"
+            },
+            "example": 10
+          },
+          {
+            "name": "userId",
+            "in": "query",
+            "description": "用户ID",
+            "required": true,
+            "style": "form",
+            "schema": {
+              "type": "json.JsonInt64"
+            },
+            "example": 0
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Base«model.base.PageResult[dto.VoiceUserPrintPageData]»"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/voice/print/identify": {
+      "post": {
+        "contentType": "application/x-www-form-urlencoded",
+        "tags": [
+          "声纹管理"
+        ],
+        "summary": "声纹鉴定",
+        "description": "上传或录制音频,返回声纹鉴定结果及文字信息",
+        "operationId": "VoicePrintIdentifyUsingPOST",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "audio",
+            "in": "query",
+            "description": "音频文件",
+            "required": true,
+            "style": "form",
+            "schema": {
+              "type": "file"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Base«domain.dto.UserPrintIdentifyRes»"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/voice/print/saveUserPrint": {
+      "post": {
+        "contentType": "application/x-www-form-urlencoded",
+        "tags": [
+          "声纹管理"
+        ],
+        "summary": "保存用户声纹信息",
+        "description": "",
+        "operationId": "VoicePrintSaveuserprintUsingPOST",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "query",
+            "description": "用户id",
+            "required": true,
+            "style": "form",
+            "schema": {
+              "type": "int"
+            }
+          },
+          {
+            "name": "userName",
+            "in": "query",
+            "description": "用户姓名",
+            "required": true,
+            "style": "form",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "audio",
+            "in": "query",
+            "description": "音频文件",
+            "required": true,
+            "style": "form",
+            "schema": {
+              "type": "file"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Base"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Base": {
+        "title": "Base",
+        "type": "object",
+        "properties": {
+          "appName": {
+            "title": "应用名",
+            "type": "string",
+            "example": "app",
+            "description": "应用名，接口报错时会有此字段，可作为报错参考依据"
+          },
+          "code": {
+            "title": "状态码",
+            "type": "int",
+            "example": 200,
+            "description": "状态码, 200或0：正常，其他：错误"
+          },
+          "data": {
+            "title": "数据",
+            "type": "object",
+            "description": "数据"
+          },
+          "message": {
+            "title": "状态描述",
+            "type": "string",
+            "example": "success",
+            "description": "状态描述"
+          },
+          "success": {
+            "title": "是否成功",
+            "type": "boolean",
+            "example": true,
+            "description": "是否成功"
+          },
+          "time": {
+            "title": "时间戳",
+            "type": "string",
+            "example": 1761039207689,
+            "description": "毫秒时间戳"
+          },
+          "traceId": {
+            "title": "日志id",
+            "type": "string",
+            "example": "efc1cea2",
+            "description": "日志id，接口报错时会有此字段，可作为报错日志快速定位依据"
+          }
+        }
+      },
+      "Base«domain.dto.UserPrintIdentifyRes»": {
+        "title": "Base",
+        "type": "object",
+        "properties": {
+          "appName": {
+            "title": "应用名",
+            "type": "string",
+            "example": "app",
+            "description": "应用名，接口报错时会有此字段，可作为报错参考依据"
+          },
+          "code": {
+            "title": "状态码",
+            "type": "int",
+            "example": 200,
+            "description": "状态码, 200或0：正常，其他：错误"
+          },
+          "data": {
+            "title": "数据",
+            "$ref": "#/components/schemas/domain.dto.UserPrintIdentifyRes",
+            "description": "数据"
+          },
+          "message": {
+            "title": "状态描述",
+            "type": "string",
+            "example": "success",
+            "description": "状态描述"
+          },
+          "success": {
+            "title": "是否成功",
+            "type": "boolean",
+            "example": true,
+            "description": "是否成功"
+          },
+          "time": {
+            "title": "时间戳",
+            "type": "string",
+            "example": 1761039207689,
+            "description": "毫秒时间戳"
+          },
+          "traceId": {
+            "title": "日志id",
+            "type": "string",
+            "example": "926f6fdc",
+            "description": "日志id，接口报错时会有此字段，可作为报错日志快速定位依据"
+          }
+        }
+      },
+      "Base«model.base.PageResult[core.BusinessAccount]»": {
+        "title": "Base",
+        "type": "object",
+        "properties": {
+          "appName": {
+            "title": "应用名",
+            "type": "string",
+            "example": "app",
+            "description": "应用名，接口报错时会有此字段，可作为报错参考依据"
+          },
+          "code": {
+            "title": "状态码",
+            "type": "int",
+            "example": 200,
+            "description": "状态码, 200或0：正常，其他：错误"
+          },
+          "data": {
+            "title": "数据",
+            "$ref": "#/components/schemas/model.base.PageResult[core.BusinessAccount]",
+            "description": "数据"
+          },
+          "message": {
+            "title": "状态描述",
+            "type": "string",
+            "example": "success",
+            "description": "状态描述"
+          },
+          "success": {
+            "title": "是否成功",
+            "type": "boolean",
+            "example": true,
+            "description": "是否成功"
+          },
+          "time": {
+            "title": "时间戳",
+            "type": "string",
+            "example": 1761039207689,
+            "description": "毫秒时间戳"
+          },
+          "traceId": {
+            "title": "日志id",
+            "type": "string",
+            "example": "578d91fe",
+            "description": "日志id，接口报错时会有此字段，可作为报错日志快速定位依据"
+          }
+        }
+      },
+      "Base«model.base.PageResult[dto.VoiceUserPrintPageData]»": {
+        "title": "Base",
+        "type": "object",
+        "properties": {
+          "appName": {
+            "title": "应用名",
+            "type": "string",
+            "example": "app",
+            "description": "应用名，接口报错时会有此字段，可作为报错参考依据"
+          },
+          "code": {
+            "title": "状态码",
+            "type": "int",
+            "example": 200,
+            "description": "状态码, 200或0：正常，其他：错误"
+          },
+          "data": {
+            "title": "数据",
+            "$ref": "#/components/schemas/model.base.PageResult[dto.VoiceUserPrintPageData]",
+            "description": "数据"
+          },
+          "message": {
+            "title": "状态描述",
+            "type": "string",
+            "example": "success",
+            "description": "状态描述"
+          },
+          "success": {
+            "title": "是否成功",
+            "type": "boolean",
+            "example": true,
+            "description": "是否成功"
+          },
+          "time": {
+            "title": "时间戳",
+            "type": "string",
+            "example": 1761039207689,
+            "description": "毫秒时间戳"
+          },
+          "traceId": {
+            "title": "日志id",
+            "type": "string",
+            "example": "c0185169",
+            "description": "日志id，接口报错时会有此字段，可作为报错日志快速定位依据"
+          }
+        }
+      },
+      "domain.dto.UserPrintIdentifyRes": {
+        "title": "domain.dto.UserPrintIdentifyRes",
+        "type": "object",
+        "properties": {
+          "txt": {
+            "title": "音频中的文本信息",
+            "type": "string",
+            "example": "",
+            "description": "音频中的文本信息",
+            "refType": null
+          },
+          "user": {
+            "title": "声纹鉴定出的用户信息",
+            "$ref": "#/components/schemas/model.core.BusinessAccount",
+            "description": "声纹鉴定出的用户信息",
+            "refType": "model.core.BusinessAccount"
+          }
+        }
+      },
+      "domain.dto.VoiceUserPrintDelReq": {
+        "title": "domain.dto.VoiceUserPrintDelReq",
+        "type": "object",
+        "properties": {
+          "docId": {
+            "title": "声纹ID",
+            "type": "string",
+            "example": "",
+            "description": "声纹ID",
+            "required": true,
+            "refType": null
+          },
+          "userId": {
+            "title": "用户ID",
+            "type": "json.JsonInt64",
+            "example": 0,
+            "description": "用户ID",
+            "required": true,
+            "refType": null
+          }
+        }
+      },
+      "domain.dto.VoiceUserPrintPageData": {
+        "title": "domain.dto.VoiceUserPrintPageData",
+        "type": "object",
+        "properties": {
+          "create_time": {
+            "title": "创建时间",
+            "type": "int64",
+            "example": 0,
+            "description": "创建时间",
+            "refType": null
+          },
+          "id": {
+            "title": "用户ID",
+            "type": "string",
+            "example": "",
+            "description": "用户ID",
+            "refType": null
+          },
+          "txt": {
+            "title": "文字信息",
+            "type": "string",
+            "example": "",
+            "description": "文字信息",
+            "refType": null
+          },
+          "userid": {
+            "title": "用户ID",
+            "type": "int64",
+            "example": 0,
+            "description": "用户ID",
+            "refType": null
+          },
+          "username": {
+            "title": "用户姓名",
+            "type": "string",
+            "example": "",
+            "description": "用户姓名",
+            "refType": null
+          },
+          "wav_path": {
+            "title": "音频文件 通过拼接接口域名+userid可访问",
+            "type": "string",
+            "example": "",
+            "description": "音频文件 通过拼接接口域名+userid可访问",
+            "refType": null
+          }
+        }
+      },
+      "model.base.PageResult[core.BusinessAccount]": {
+        "title": "model.base.PageResult[core.BusinessAccount]",
+        "type": "object",
+        "properties": {
+          "items": {
+            "title": "items",
+            "type": "array",
+            "description": "items",
+            "items": {
+              "$ref": "#/components/schemas/model.core.BusinessAccount"
+            },
+            "refType": "model.core.BusinessAccount"
+          },
+          "page": {
+            "title": "page",
+            "type": "int64",
+            "example": 0,
+            "description": "page",
+            "refType": null
+          },
+          "pageSize": {
+            "title": "pageSize",
+            "type": "int64",
+            "example": 0,
+            "description": "pageSize",
+            "refType": null
+          },
+          "total": {
+            "title": "total",
+            "type": "int64",
+            "example": 0,
+            "description": "total",
+            "refType": null
+          }
+        }
+      },
+      "model.base.PageResult[dto.VoiceUserPrintPageData]": {
+        "title": "model.base.PageResult[dto.VoiceUserPrintPageData]",
+        "type": "object",
+        "properties": {
+          "items": {
+            "title": "items",
+            "type": "array",
+            "description": "items",
+            "items": {
+              "$ref": "#/components/schemas/domain.dto.VoiceUserPrintPageData"
+            },
+            "refType": "domain.dto.VoiceUserPrintPageData"
+          },
+          "page": {
+            "title": "page",
+            "type": "int64",
+            "example": 0,
+            "description": "page",
+            "refType": null
+          },
+          "pageSize": {
+            "title": "pageSize",
+            "type": "int64",
+            "example": 0,
+            "description": "pageSize",
+            "refType": null
+          },
+          "total": {
+            "title": "total",
+            "type": "int64",
+            "example": 0,
+            "description": "total",
+            "refType": null
+          }
+        }
+      },
+      "model.core.BusinessAccount": {
+        "title": "model.core.BusinessAccount",
+        "type": "object",
+        "properties": {
+          "address": {
+            "title": "address",
+            "type": "string",
+            "example": "",
+            "description": "address",
+            "refType": null
+          },
+          "appKey": {
+            "title": "appKey",
+            "type": "string",
+            "example": "",
+            "description": "appKey",
+            "refType": null
+          },
+          "appKeySecret": {
+            "title": "appKeySecret",
+            "type": "string",
+            "example": "",
+            "description": "appKeySecret",
+            "refType": null
+          },
+          "area": {
+            "title": "area",
+            "type": "string",
+            "example": "",
+            "description": "area",
+            "refType": null
+          },
+          "avatar": {
+            "title": "avatar",
+            "type": "string",
+            "example": "",
+            "description": "avatar",
+            "refType": null
+          },
+          "city": {
+            "title": "city",
+            "type": "string",
+            "example": "",
+            "description": "city",
+            "refType": null
+          },
+          "company": {
+            "title": "company",
+            "type": "string",
+            "example": "",
+            "description": "company",
+            "refType": null
+          },
+          "createTime": {
+            "title": "createTime",
+            "$ref": "#/components/schemas/pkg.json.JsonTime",
+            "description": "createTime",
+            "refType": "pkg.json.JsonTime"
+          },
+          "creatorId": {
+            "title": "creatorId",
+            "type": "int64",
+            "example": 0,
+            "description": "creatorId",
+            "refType": null
+          },
+          "creatorName": {
+            "title": "creatorName",
+            "type": "string",
+            "example": "",
+            "description": "creatorName",
+            "refType": null
+          },
+          "dept_id": {
+            "title": "dept_id",
+            "type": "int64",
+            "example": 0,
+            "description": "dept_id",
+            "refType": null
+          },
+          "email": {
+            "title": "email",
+            "type": "string",
+            "example": "",
+            "description": "email",
+            "refType": null
+          },
+          "fileSize": {
+            "title": "fileSize",
+            "type": "uint64",
+            "example": 0,
+            "description": "fileSize",
+            "refType": null
+          },
+          "id": {
+            "title": "id",
+            "type": "int64",
+            "example": 0,
+            "description": "id",
+            "refType": null
+          },
+          "lastLoginIp": {
+            "title": "lastLoginIp",
+            "type": "string",
+            "example": "",
+            "description": "lastLoginIp",
+            "refType": null
+          },
+          "lastLoginTime": {
+            "title": "lastLoginTime",
+            "type": "int64",
+            "example": 0,
+            "description": "lastLoginTime",
+            "refType": null
+          },
+          "loginstatus": {
+            "title": "loginstatus",
+            "type": "bool",
+            "example": false,
+            "description": "loginstatus",
+            "refType": null
+          },
+          "mobile": {
+            "title": "mobile",
+            "type": "string",
+            "example": "",
+            "description": "mobile",
+            "refType": null
+          },
+          "name": {
+            "title": "name",
+            "type": "string",
+            "example": "",
+            "description": "name",
+            "refType": null
+          },
+          "nickname": {
+            "title": "nickname",
+            "type": "string",
+            "example": "",
+            "description": "nickname",
+            "refType": null
+          },
+          "password": {
+            "title": "password",
+            "type": "string",
+            "example": "",
+            "description": "password",
+            "refType": null
+          },
+          "province": {
+            "title": "province",
+            "type": "string",
+            "example": "",
+            "description": "province",
+            "refType": null
+          },
+          "remark": {
+            "title": "remark",
+            "type": "string",
+            "example": "",
+            "description": "remark",
+            "refType": null
+          },
+          "salt": {
+            "title": "salt",
+            "type": "string",
+            "example": "",
+            "description": "salt",
+            "refType": null
+          },
+          "status": {
+            "title": "status",
+            "type": "int64",
+            "example": 0,
+            "description": "status",
+            "refType": null
+          },
+          "tel": {
+            "title": "tel",
+            "type": "string",
+            "example": "",
+            "description": "tel",
+            "refType": null
+          },
+          "uid": {
+            "title": "uid",
+            "type": "int64",
+            "example": 0,
+            "description": "uid",
+            "refType": null
+          },
+          "updateTime": {
+            "title": "updateTime",
+            "$ref": "#/components/schemas/pkg.json.JsonTime",
+            "description": "updateTime",
+            "refType": "pkg.json.JsonTime"
+          },
+          "updaterId": {
+            "title": "updaterId",
+            "type": "int64",
+            "example": 0,
+            "description": "updaterId",
+            "refType": null
+          },
+          "updaterName": {
+            "title": "updaterName",
+            "type": "string",
+            "example": "",
+            "description": "updaterName",
+            "refType": null
+          },
+          "username": {
+            "title": "username",
+            "type": "string",
+            "example": "",
+            "description": "username",
+            "refType": null
+          },
+          "validtime": {
+            "title": "validtime",
+            "type": "int64",
+            "example": 0,
+            "description": "validtime",
+            "refType": null
+          }
+        }
+      },
+      "pkg.json.JsonTime": {
+        "title": "pkg.json.JsonTime",
+        "type": "object"
+      }
+    }
+  }
+}
