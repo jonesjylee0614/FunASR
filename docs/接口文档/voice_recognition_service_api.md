@@ -1,4 +1,4 @@
-# 智能语音与声纹服务接口规范 v1.1
+# 智能语音与声纹服务接口规范 v1
 
 ## 1. 概述
 本规范统一描述语音识别（离线批量与实时流式）与声纹管理能力的开放接口，涵盖接入要求、请求/响应结构、示例以及错误码。除非特别说明，所有时间单位均为毫秒，布尔字段使用 `true/false` 表示。
@@ -22,8 +22,9 @@
 - 入口应结合 API 网关实现限流（QPS/并发）、来源 IP 白名单与审计日志。
 
 ### 2.3 幂等与请求标识
-- REST 创建任务接口使用 `Idempotency-Key` 保证幂等：相同 Key + Body 在 60 分钟内返回同一 `job_id`。
-- 所有请求应携带 `X-Request-ID` 以便日志追踪，并在响应中原样返回。
+幂等机制用于保证客户端发生重试时不会重复创建任务或产生副作用，请求标识用于日志追踪与问题定位。
+- REST 创建任务接口可在 Header 中携带 `Idempotency-Key`：服务端会在 60 分钟内对相同 Key + Body 返回同一 `job_id`，避免网络重试带来重复任务。
+- 建议所有请求携带 `X-Request-ID`，服务端在响应中回传该值，便于双方按日志链路排查问题。
 
 ### 2.4 令牌获取
 - 令牌由企业统一身份平台或 API 网关签发，通常通过 OAuth2 Client Credentials 或内部签发接口获得。
@@ -319,7 +320,7 @@ sequenceDiagram
 ## 5. 声纹管理 API
 ### 5.1 公共说明
 - 基础路径：`/voice/print`
-- 认证：同 2.2。
+- 认证：同 2.2，所有请求需携带 `Authorization: Bearer <token>`。
 - 数据格式：默认 `application/json`；上传音频使用 `multipart/form-data` 或 `application/x-www-form-urlencoded` 中的文件字段。
 - 幂等性：查询接口为幂等操作；删除/保存接口可结合 `Idempotency-Key` 或外部业务主键避免重复处理。
 - 业务约束：声纹样本需满足最短 1 秒、最长 30 秒的音频长度，采样率不少于 16 kHz 单声道。
@@ -359,6 +360,9 @@ sequenceDiagram
   "userId": 10001
 }
 ```
+**Headers**
+- `Authorization: Bearer <token>`
+- `X-Request-ID`（可选）
 
 **字段说明**
 - `docId`：声纹样本文档 ID，用于定位待删除的音频。
@@ -391,6 +395,10 @@ sequenceDiagram
 | `page` | 页码 | 否 | int64 | 1 |
 | `pageSize` | 页大小 | 否 | int64 | 10 |
 | `name` | 用户名模糊搜索 | 否 | string | - |
+
+**Headers**
+- `Authorization: Bearer <token>`
+- `X-Request-ID`（可选）
 
 **响应体**
 ```json
@@ -432,6 +440,10 @@ sequenceDiagram
 | `page` | 页码 | 否 | int64 | 1 |
 | `pageSize` | 页大小 | 否 | int64 | 10 |
 
+**Headers**
+- `Authorization: Bearer <token>`
+- `X-Request-ID`（可选）
+
 **响应体**
 ```json
 {
@@ -470,6 +482,11 @@ sequenceDiagram
 |---|---|---|---|
 | `audio` | 待鉴定音频文件 | 是 | file |
 
+**Headers**
+- `Authorization: Bearer <token>`
+- `Content-Type: multipart/form-data`
+- `X-Request-ID`（可选）
+
 **响应体**
 ```json
 {
@@ -504,6 +521,11 @@ sequenceDiagram
 | `userId` | 用户 ID | 是 | int |
 | `userName` | 用户姓名 | 是 | string |
 | `audio` | 声纹样本音频 | 是 | file |
+
+**Headers**
+- `Authorization: Bearer <token>`
+- `Content-Type: multipart/form-data`
+- `X-Request-ID`（可选）
 
 **响应体** 同 5.3。
 - 音频需满足采样率、时长约束，不符合要求时返回 `code=40011`。
