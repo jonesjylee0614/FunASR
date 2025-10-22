@@ -7,13 +7,11 @@
   {
     "code": 0,
     "message": "ok",
-    "data": {},
-    "request_id": "req-uuid"
+    "data": {}
   }
   ```
   `code=0` 表示成功，`code>0` 表示业务错误；HTTP 状态仅表达传输语义。
 - **公共字段**：分页使用 `page`、`pageSize`、`total`、`items`；时间均为毫秒整数并以下划线 `_ms` 结尾，可在日志中并行输出 ISO8601。
-- **请求标识**：客户端需传 `X-Request-ID`，服务端亦会在响应体中回显 `request_id`，未提供时由服务端生成 UUID。
 - **错误体**：错误响应与成功结构一致，仅将 `code`、`message` 置为对应业务码和描述；必要时在 `data` 中补充错误上下文。
 
 ## 1. 概述
@@ -23,34 +21,6 @@
 - REST 离线识别：适用于整段音频文件的批量转写，可结合回调实现异步处理。
 - WebSocket 实时识别：适用于实时字幕、会议记录等场景，采用实时识别 + 离线纠错的双路模式。
 - 声纹管理接口：提供声纹注册、识别与管理能力。
-
-### 1.1 快速开始
-
-**离线识别示例**：
-```bash
-curl -X POST "https://your-domain/v1/voice/offline/jobs" \
-  -H "x-ak: <appKey>" \
-  -H "x-t: <timestamp-ms>" \
-  -H "x-sign: <md5(appKey+appSecret+timestamp-ms)>" \
-  -F "audio=@audio.wav" \
-  -F "language=zh-CN"
-```
-
-**实时识别示例**：
-```javascript
-const timestamp = Date.now().toString();
-const sign = md5(appKey + appSecret + timestamp);
-const ws = new WebSocket(
-  `wss://your-domain/v1/voice/realtime?x-ak=${appKey}&x-t=${timestamp}&x-sign=${sign}`
-);
-ws.onopen = () => {
-  ws.send(JSON.stringify({
-    audio_fs: 16000,
-    language: 'zh-CN',
-    itn: true
-  }));
-};
-```
 
 ## 2. 服务接入
 
@@ -82,29 +52,25 @@ ws.onopen = () => {
     -H "x-t: ${timestamp}" \
     -H "x-sign: ${signature}"
   ```
-- WebSocket 握手若无法自定义 Header，可将 `x-ak`、`x-t`、`x-sign` 以查询参数形式附加至 URL（例如 `?x-ak=...&x-t=...&x-sign=...`）。
+- WebSocket 握手无法自定义 Header，须将 `x-ak`、`x-t`、`x-sign` 以查询参数形式附加至 URL（例如 `?x-ak=...&x-t=...&x-sign=...`）。
 - 所有接口仅在 HTTPS/WSS 通道开放，建议在网关层启用 IP 白名单、QPS/并发限流和审计日志。
 
-### 2.3 请求标识
-
-请求标识用于日志追踪与问题定位。所有请求推荐携带 `X-Request-ID`，服务端会在响应体中回显；若客户端未提供，服务端需兜底生成 UUID 并注入日志链路。
-
-### 2.4 凭证申请与管理
+### 2.3 凭证申请与管理
 
 - 运维/平台管理员为租户创建独立的 `AppKey` 与 `AppSecret`，并配置可访问的接口范围及限流策略。
 - `AppSecret` 仅在创建时下发一次，请立即存入受控配置中心或密钥管理服务，避免写入客户端或浏览器代码。
 - 建议按业务系统或环境划分多组凭证，便于追踪与隔离；若凭证疑似泄漏，应第一时间在管理端吊销并重新生成。
 - 为降低长期凭证风险，可结合运维流程定期轮换 `AppSecret`，并通知调用方在新旧凭证的可重叠窗口内完成切换。
 
-### 2.5 接口通用说明
+### 2.4 接口通用说明
 
 - **编码**：除文件上传外，默认使用 `application/json` 与 UTF-8 编码。
 - **时间字段**：统一使用毫秒整数（字段以 `_ms` 结尾），必要时可在日志或回调中额外提供 ISO8601 字符串。
 - **分页约定**：`page` 从 1 开始计数，`pageSize` 默认 10，建议控制在 10～100；响应携带 `total` 便于前端分页。
-- **响应结构**：遵循 §0 统一格式，业务负载全部置于 `data` 字段；错误同样遵循该结构，仅调整 `code` 与 `message`。
+- **响应结构**：遵循统一格式，业务负载全部置于 `data` 字段；错误同样遵循该结构，仅调整 `code` 与 `message`。
 - **安全要求**：所有接口需在 HTTPS/WSS 通道下访问，并实现 IP 白名单、速率限制与审计日志。
 
-### 2.6 最佳实践
+### 2.5 最佳实践
 
 **错误处理**：
 ```javascript
@@ -117,7 +83,6 @@ try {
       'x-ak': appKey,
       'x-t': timestamp,
       'x-sign': sign,
-      'X-Request-ID': generateUUID()
     },
     body: formData
   });
@@ -146,7 +111,6 @@ try {
 | ---- | ------------------------------------------------- | ----------- |
 | POST | `/v1/voice/offline/jobs`                     | 创建离线识别任务    |
 | GET  | `/v1/voice/offline/jobs/{job_id}`            | 查询任务状态与结果   |
-| POST | `/v1/voice/offline/jobs/{job_id}/cancel`（可选） | 取消排队或执行中的任务 |
 
 > 若内部仍使用旧路径，可由网关映射至上述外部路径。
 
@@ -160,7 +124,6 @@ try {
 | `x-t` | string | 是 | 当前毫秒时间戳，字符串形式 |
 | `x-sign` | string | 是 | `MD5(AppKey + AppSecret + x-t)` 结果，32 位小写 |
 | `Content-Type` | string | 是 | 固定为 `multipart/form-data` |
-| `X-Request-ID` | string | 否 | 客户端请求标识，方便日志串联 |
 
 **Body（multipart）**
 
@@ -185,7 +148,6 @@ try {
 {
   "code": 0,
   "message": "accepted",
-  "request_id": "req-1700000000000",
   "data": {
     "job_id": "off-20250121-0001",
     "status": "queued"
@@ -215,7 +177,6 @@ try {
 | `x-ak` | string | 是 | AppKey，用于标识调用方 |
 | `x-t` | string | 是 | 当前毫秒时间戳，字符串形式 |
 | `x-sign` | string | 是 | `MD5(AppKey + AppSecret + x-t)` 结果，32 位小写 |
-| `X-Request-ID` | string | 否 | 客户端请求标识，便于链路追踪 |
 
 **响应示例**
 
@@ -223,7 +184,6 @@ try {
 {
   "code": 0,
   "message": "ok",
-  "request_id": "req-1700000001234",
   "data": {
     "job_id": "off-20250121-0001",
     "status": "succeeded",
@@ -276,39 +236,16 @@ try {
 | `start_ms` | int64 | 句子开始时间（毫秒） |
 | `end_ms` | int64 | 句子结束时间（毫秒） |
 
-状态取值：`queued`、`processing`、`succeeded`、`failed`、`cancelled`。失败时顶层 `code > 0`，`message` 携带错误描述，可在 `data.error` 中补齐内部子码或排查信息（例如 `{"code":50001,"message":"internal error"}`）。
+状态取值：`queued`、`processing`、`succeeded`、`failed`。失败时顶层 `code > 0`，`message` 携带错误描述，可在 `data.error` 中补齐内部子码或排查信息（例如 `{"code":50001,"message":"internal error"}`）。
 
 
-### 3.4 任务取消（POST `/v1/voice/offline/jobs/{job_id}/cancel`）
+### 3.4 回调（可选）
 
-任务处于 `queued/processing` 时可取消。服务端校验任务可取消状态后，回写 `status` 并返回：
-
-```json
-{
-  "code": 0,
-  "message": "ok",
-  "request_id": "req-1700000004321",
-  "data": {
-    "job_id": "off-20250121-0001",
-    "status": "cancelled"
-  }
-}
-```
-
-**字段说明（data）**
-
-| 字段 | 类型 | 说明 |
-| --- | --- | --- |
-| `job_id` | string | 被取消的任务 ID |
-| `status` | string | 固定为 `cancelled`，表示任务已取消 |
-
-### 3.5 回调（可选）
-
-- Header：`Content-Type: application/json`、`X-Request-ID`；如部署侧需要鉴权，可额外配置回调专用 Token。
-- Body：与查询任务时 `data.result` 结构一致，并补充顶层 `code`、`message`、`request_id` 字段。
+- Header：`Content-Type: application/json`；如部署侧需要鉴权，可额外配置回调专用 Token。
+- Body：与查询任务时 `data.result` 结构一致，并补充顶层 `code`、`message` 字段。
 - 回调方需在 5 次以内（指数退避）完整消费通知，可使用 `job_id` 去重，并返回 `2xx`。
 
-### 3.6 REST 错误码
+### 3.5 REST 错误码
 
 | HTTP | code  | message              | 说明             |
 | ---- | ----- | -------------------- | -------------- |
@@ -319,7 +256,7 @@ try {
 | 500  | 50001 | internal error       | 服务内部错误         |
 | 504  | 50401 | job timeout          | 处理超时           |
 
-### 3.7 离线任务时序
+### 3.6 离线任务时序
 
 ```mermaid
 sequenceDiagram
@@ -520,7 +457,7 @@ sequenceDiagram
 ### 4.9 热词配置
 
 ```json
-"hotwords": {
+"hotwords":{
   "terms": [
     {"text": "心肌梗死", "boost": 6.0},
     {"text": "冠状动脉", "boost": 4.0}
@@ -562,7 +499,7 @@ sequenceDiagram
 **统一错误体**
 
 ```json
-{"code": 440001, "message": "invalid frame", "request_id": "..."}
+{"code": 440001, "message": "invalid frame"}
 ```
 
 ### 4.13 实时识别时序
@@ -605,7 +542,7 @@ sequenceDiagram
   
   | code  | message              | 说明           |
   | ----- | -------------------- | ------------ |
-| 40101 | invalid signature    | 签名缺失、过期或校验失败 |
+  | 40101 | invalid signature    | 签名缺失、过期或校验失败 |
   | 40011 | invalid voice sample | 音频时长/格式不符合要求 |
   | 40401 | user not found       | 指定的用户不存在     |
   | 40901 | voiceprint conflict  | 声纹重复或冲突      |
@@ -647,7 +584,6 @@ sequenceDiagram
 - `x-ak`: AppKey
 - `x-t`: 当前毫秒时间戳字符串
 - `x-sign`: `MD5(AppKey + AppSecret + x-t)`
-- `X-Request-ID`（可选）
 
 **字段说明**
 
@@ -666,7 +602,6 @@ sequenceDiagram
 {
   "code": 0,
   "message": "ok",
-  "request_id": "req-1700000007788",
   "data": {}
 }
 ```
@@ -676,6 +611,7 @@ sequenceDiagram
 **用途**：提供具备声纹注册权限的业务用户列表，便于选择目标用户进行声纹录入。
 
 **查询参数**
+
 | 参数 | 说明 | 必填 | 类型 | 默认 |
 |---|---|---|---|---|
 | `page` | 页码 | 否 | int64 | 1 |
@@ -687,7 +623,6 @@ sequenceDiagram
 - `x-ak`: AppKey
 - `x-t`: 当前毫秒时间戳字符串
 - `x-sign`: `MD5(AppKey + AppSecret + x-t)`
-- `X-Request-ID`（可选）
 
 **响应体**
 
@@ -695,7 +630,6 @@ sequenceDiagram
 {
   "code": 0,
   "message": "ok",
-  "request_id": "req-1700000008899",
   "data": {
     "items": [
       {
@@ -723,6 +657,7 @@ sequenceDiagram
 **用途**：查询指定用户已注册的声纹样本，查看样本状态与文本内容。
 
 **查询参数**
+
 | 参数 | 说明 | 必填 | 类型 | 默认 |
 |---|---|---|---|---|
 | `userId` | 用户 ID | 是 | int64 | - |
@@ -734,7 +669,6 @@ sequenceDiagram
 - `x-ak`: AppKey
 - `x-t`: 当前毫秒时间戳字符串
 - `x-sign`: `MD5(AppKey + AppSecret + x-t)`
-- `X-Request-ID`（可选）
 
 **响应体**
 
@@ -742,7 +676,6 @@ sequenceDiagram
 {
   "code": 0,
   "message": "ok",
-  "request_id": "req-1700000009900",
   "data": {
     "items": [
       {
@@ -770,6 +703,7 @@ sequenceDiagram
 **用途**：上传音频进行声纹比对，返回匹配的用户信息及文本内容。
 
 **表单字段（application/x-www-form-urlencoded 或 multipart）**
+
 | 字段 | 说明 | 必填 | 类型 |
 |---|---|---|---|
 | `audio` | 待鉴定音频文件 | 是 | file |
@@ -780,7 +714,6 @@ sequenceDiagram
 - `x-t`: 当前毫秒时间戳字符串
 - `x-sign`: `MD5(AppKey + AppSecret + x-t)`
 - `Content-Type: multipart/form-data`
-- `X-Request-ID`（可选）
 
 **响应体**
 
@@ -788,7 +721,6 @@ sequenceDiagram
 {
   "code": 0,
   "message": "ok",
-  "request_id": "req-1700000011234",
   "data": {
     "txt": "",
     "user": {
@@ -811,6 +743,7 @@ sequenceDiagram
 **用途**：为指定用户创建或追加声纹样本。
 
 **表单字段**
+
 | 字段 | 说明 | 必填 | 类型 |
 |---|---|---|---|
 | `userId` | 用户 ID | 是 | int |
@@ -823,7 +756,6 @@ sequenceDiagram
 - `x-t`: 当前毫秒时间戳字符串
 - `x-sign`: `MD5(AppKey + AppSecret + x-t)`
 - `Content-Type: multipart/form-data`
-- `X-Request-ID`（可选）
 
 **响应体** 同 5.3。
 
